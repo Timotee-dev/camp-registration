@@ -1,0 +1,25 @@
+{% extends "registration/base.html" %}
+{% block title %}Find my registration{% endblock %}
+{% block body %}
+{% include "registration/_hero.html" %}
+<main class="wrap">
+  <div class="card">
+    <h2>Find my registration</h2>
+    {% for m in messages %}<div class="notice notice-info">{{ m }}</div>{% endfor %}
+    {% if sent_to %}
+      <div class="notice notice-ok">Found it! We've re-sent your registration code by SMS to <strong>{{ sent_to }}</strong> (and to your email, if you gave one).</div>
+      <a class="btn btn-ghost" href="{% url 'registration:register' %}">Back to registration</a>
+    {% elif not event %}
+      <p class="muted">There's no active camp right now.</p>
+    {% else %}
+      <p class="muted small" style="margin-top:0">Enter the phone number you registered with and we'll re-send your code to it.</p>
+      <form method="post" class="form-grid" novalidate>
+        {% csrf_token %}
+        {% include "registration/_field.html" with f=form.phone %}
+        <button class="btn btn-primary btn-block" type="submit">Re-send my code</button>
+      </form>
+    {% endif %}
+  </div>
+  <p class="footer-links"><a href="{% url 'registration:register' %}">New registration</a></p>
+</main>
+{% endblock %}

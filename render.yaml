@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: camp-registration
+    runtime: python
+    buildCommand: ./build.sh
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: camp-registration-db
+          property: connectionString
+      - key: SMS_PROVIDER
+        value: termii
+      - key: TERMII_API_KEY
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
+databases:
+  - name: camp-registration-db
+    plan: free

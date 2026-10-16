@@ -1,0 +1,13 @@
+<header class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow">{{ ORGANISER_NAME }}</div>
+    <h1>{% if event %}{{ event.name }}{% else %}{{ SITE_NAME }}{% endif %}</h1>
+    {% if event.theme %}<p class="theme">“{{ event.theme }}”</p>{% endif %}
+    {% if event %}
+    <div class="meta">
+      <span class="chip">📅 {{ event.start_date|date:"j M" }} – {{ event.end_date|date:"j M Y" }}</span>
+      <span class="chip">📍 {{ event.venue }}</span>
+    </div>
+    {% endif %}
+  </div>
+</header>

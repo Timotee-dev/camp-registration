@@ -1,0 +1,19 @@
+{% extends "registration/base.html" %}
+{% block body %}
+{% include "registration/_hero.html" %}
+<main class="wrap">
+  <div class="card">
+    {% if not event %}
+      <h2>Registration isn't open yet</h2>
+      <p class="muted">Details of the next camp meeting will be published here soon. Please check back.</p>
+    {% elif event.is_full %}
+      <h2>Registration is full</h2>
+      <p class="muted">We've reached capacity for {{ event.name }}. {% if event.contact_phone %}For enquiries call <a href="tel:{{ event.contact_phone }}">{{ event.contact_phone }}</a>.{% endif %}</p>
+    {% else %}
+      <h2>Registration is closed</h2>
+      <p class="muted">Online registration for {{ event.name }} has closed. {% if event.contact_phone %}For enquiries call <a href="tel:{{ event.contact_phone }}">{{ event.contact_phone }}</a>.{% endif %}</p>
+    {% endif %}
+    {% if event %}<a class="btn btn-ghost" href="{% url 'registration:lookup' %}">Already registered? Find my code</a>{% endif %}
+  </div>
+</main>
+{% endblock %}
