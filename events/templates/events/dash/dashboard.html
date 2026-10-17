@@ -1,0 +1,44 @@
+{% extends "app_base.html" %}
+{% load humanize %}
+{% block title %}My events · {{ SITE_NAME }}{% endblock %}
+{% block main %}
+<main class="container">
+  <div class="page-head">
+    <div><h1>My events</h1><p class="muted" style="margin:4px 0 0">Hi {{ user.first_name|default:"there" }} — create a form, share the link, collect registrations.</p></div>
+    {% if events %}<a class="btn btn-primary" href="{% url 'events:create' %}">+ New event</a>{% endif %}
+  </div>
+  {% include "_messages.html" %}
+  {% if events %}
+  <div class="event-grid">
+    {% for event in events %}
+    <article class="event-card">
+      <span class="stripe" style="background:{{ event.accent }}"></span>
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start">
+        <h3><a href="{% url 'events:responses' event.pk %}">{{ event.title }}</a></h3>
+        {% include "events/dash/_status.html" %}
+      </div>
+      <div class="meta">
+        {% if event.starts_at %}<span>📅 {{ event.starts_at|date:"D j M Y" }}</span>{% endif %}
+        {% if event.venue %}<span>📍 {{ event.venue|truncatechars:48 }}</span>{% endif %}
+        <span>Created {{ event.created_at|naturalday }}</span>
+      </div>
+      <div class="foot">
+        <div><div class="big">{{ event.n_responses|intcomma }}</div><div class="tiny muted">registration{{ event.n_responses|pluralize }}</div></div>
+        <div style="display:flex;gap:6px;position:relative;z-index:1">
+          <a class="btn btn-sm btn-ghost" href="{% url 'events:build' event.pk %}">Edit</a>
+          <a class="btn btn-sm btn-ghost" href="{% url 'events:share' event.pk %}">Share</a>
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="ill"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+    <h2>Create your first event</h2>
+    <p class="muted" style="max-width:420px;margin:0 auto 18px">Give it a name, choose the questions people should answer, and you'll get a link to share.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'events:create' %}">+ Create an event</a>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

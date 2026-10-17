@@ -1,10 +1,13 @@
+# Render Blueprint — free web service. The database is a free Neon Postgres (see README),
+# because Render's own free database is deleted after 30 days.
 services:
   - type: web
-    name: camp-registration
+    name: nexform
     runtime: python
     plan: free
     buildCommand: bash build.sh
-    startCommand: gunicorn config.wsgi:application
+    startCommand: gunicorn config.wsgi:application --workers 2 --timeout 60
+    healthCheckPath: /
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.7
@@ -13,33 +16,10 @@ services:
       - key: DEBUG
         value: "False"
       - key: DATABASE_URL
-        fromDatabase:
-          name: camp-registration-db
-          property: connectionString
-      - key: SMS_PROVIDER
-        value: termii
-      - key: TERMII_API_KEY
         sync: false
-      - key: EMAIL_HOST
-        sync: false
-      - key: EMAIL_HOST_USER
-        sync: false
-      - key: EMAIL_HOST_PASSWORD
-        sync: false
-      - key: DEFAULT_FROM_EMAIL
-        sync: false
-      - key: DJANGO_SUPERUSER_USERNAME
-        sync: false
+      - key: SITE_NAME
+        value: Nexform
       - key: DJANGO_SUPERUSER_EMAIL
         sync: false
       - key: DJANGO_SUPERUSER_PASSWORD
         sync: false
-      - key: SITE_NAME
-        sync: false
-      - key: ORGANISER_NAME
-        sync: false
-      - key: TERMII_SENDER_ID
-        sync: false
-databases:
-  - name: camp-registration-db
-    plan: free

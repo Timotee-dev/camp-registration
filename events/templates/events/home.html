@@ -1,0 +1,46 @@
+{% extends "app_base.html" %}
+{% block title %}{{ SITE_NAME }} — Free event registration forms{% endblock %}
+{% block main %}
+<main>
+  <section class="hero">
+    <div>
+      <h1>Registration forms people <em>actually finish.</em></h1>
+      <p class="lede">Create an event, choose the questions you need, and share one link. People answer one question at a time — and every registration lands in your dashboard, ready to download as Excel.</p>
+      <div class="cta">
+        {% if user.is_authenticated %}
+          <a class="btn btn-primary btn-lg" href="{% url 'events:dashboard' %}">Go to my events</a>
+          <a class="btn btn-ghost btn-lg" href="{% url 'events:create' %}">Create an event</a>
+        {% else %}
+          <a class="btn btn-primary btn-lg" href="{% url 'accounts:signup' %}">Create a free account</a>
+          <a class="btn btn-ghost btn-lg" href="{% url 'accounts:login' %}">Log in</a>
+        {% endif %}
+      </div>
+      <p class="small muted">Free. No limits on registrations.</p>
+    </div>
+    <div class="mock" aria-hidden="true">
+      <div class="bar"><span></span></div>
+      <div class="mq">3 of 5 →</div>
+      <div class="ml">What's your phone number?</div>
+      <div class="mi">0803 123 45</div>
+      <span class="mb">Next ↵</span>
+    </div>
+  </section>
+  <section class="how">
+    <h2>How it works</h2>
+    <div class="how-grid">
+      <div class="how-card"><div class="n">1</div><h3>Create your event</h3><p class="muted small" style="margin:0">Add the name, date, venue and what it's about. That's the first thing people see.</p></div>
+      <div class="how-card"><div class="n">2</div><h3>Pick your questions</h3><p class="muted small" style="margin:0">Name, phone, email, address, dropdowns, checkboxes, dates — ask exactly what you need.</p></div>
+      <div class="how-card"><div class="n">3</div><h3>Share the link</h3><p class="muted small" style="margin:0">Send it on WhatsApp or print the QR code. Watch registrations come in and export to Excel anytime.</p></div>
+    </div>
+    <ul class="features">
+      <li>One question per page, built for phones</li>
+      <li>Review answers before submitting</li>
+      <li>Stop duplicate registrations by phone or email</li>
+      <li>Close automatically on a date or after a limit</li>
+      <li>View, search and print every registration</li>
+      <li>Download as Excel or CSV anytime</li>
+    </ul>
+  </section>
+  <footer class="site-foot">{{ SITE_NAME }}</footer>
+</main>
+{% endblock %}

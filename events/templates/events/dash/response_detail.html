@@ -1,0 +1,31 @@
+{% extends "app_base.html" %}
+{% block title %}#{{ s.number }} · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container container-narrow">
+  {% include "events/dash/_event_head.html" %}
+  <div class="card">
+    <div class="card-head">
+      <div>
+        <div class="small muted">Registration</div>
+        <h2 style="font-size:1.8rem" class="mono">#{{ s.number }}</h2>
+        <div class="small muted">{{ s.created_at|date:"l, j F Y · g:i A" }}</div>
+      </div>
+      <div style="display:flex;gap:6px">
+        <a class="icon-btn" {% if prev %}href="{% url 'events:response' event.pk prev %}"{% else %}aria-disabled="true" style="opacity:.35;pointer-events:none"{% endif %} title="Previous" aria-label="Previous registration">←</a>
+        <a class="icon-btn" {% if next %}href="{% url 'events:response' event.pk next %}"{% else %}aria-disabled="true" style="opacity:.35;pointer-events:none"{% endif %} title="Next" aria-label="Next registration">→</a>
+      </div>
+    </div>
+    <dl class="dl">
+      {% for q, v in items %}
+      <div><dt>{{ q.label }}{% if q.is_archived %} (removed){% endif %}</dt><dd>{% if v %}{% if q.qtype == "email" %}<a href="mailto:{{ v }}">{{ v }}</a>{% elif q.qtype == "phone" %}<a href="tel:{{ v }}">{{ v }}</a>{% else %}{{ v }}{% endif %}{% else %}<span class="muted">—</span>{% endif %}</dd></div>
+      {% endfor %}
+    </dl>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+    <a class="btn btn-ghost" href="{% url 'events:responses' event.pk %}">← All registrations</a>
+    <button class="btn btn-ghost" type="button" onclick="window.print()">Print</button>
+    <form method="post" action="{% url 'events:response_delete' event.pk s.number %}" onsubmit="return confirm('Delete registration #{{ s.number }}? This cannot be undone.')" style="margin-left:auto">{% csrf_token %}
+      <button class="btn btn-danger-ghost" type="submit">Delete</button></form>
+  </div>
+</main>
+{% endblock %}

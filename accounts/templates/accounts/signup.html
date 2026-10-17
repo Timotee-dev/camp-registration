@@ -1,0 +1,17 @@
+{% extends "app_base.html" %}
+{% block title %}Sign up · {{ SITE_NAME }}{% endblock %}
+{% block main %}
+<main class="auth"><div class="card">
+  <h1>Create your free account</h1>
+  <p class="muted">Build a registration form and share it in minutes.</p>
+  {% if form.non_field_errors %}<div class="notice notice-err">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  <form method="post" class="form-stack" novalidate>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    {% include "_field.html" with f=form.full_name %}
+    {% include "_field.html" with f=form.email %}
+    {% include "_field.html" with f=form.password %}
+    <button class="btn btn-primary btn-block btn-lg" type="submit">Create account</button>
+  </form>
+  <p class="alt">Already have an account? <a href="{% url 'accounts:login' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Log in</a></p>
+</div></main>
+{% endblock %}

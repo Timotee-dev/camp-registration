@@ -1,0 +1,68 @@
+{% extends "app_base.html" %}
+{% load humanize %}
+{% block title %}Registrations · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container">
+  {% include "events/dash/_event_head.html" %}
+  <section class="stats">
+    <div class="stat"><div class="n">{{ stats.total|intcomma }}</div><div class="l">Total{% if event.max_responses %} of {{ event.max_responses|intcomma }}{% endif %}</div></div>
+    <div class="stat"><div class="n">{{ stats.today|intcomma }}</div><div class="l">Today</div></div>
+    <div class="stat"><div class="n">{{ stats.week|intcomma }}</div><div class="l">Last 7 days</div></div>
+  </section>
+
+  {% if stats.total %}
+  <div class="toolbar">
+    <form method="get" role="search">
+      <input type="search" name="q" value="{{ q }}" placeholder="Search names, phones, emails, #number…" aria-label="Search registrations">
+      <button class="btn btn-sm btn-ghost" type="submit">Search</button>
+    </form>
+    <div class="actions">
+      <form method="post" action="{% url 'events:toggle' event.pk %}" style="margin:0">{% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button class="btn btn-sm btn-ghost" type="submit">{% if event.is_open %}Close registration{% else %}Reopen registration{% endif %}</button></form>
+      <a class="btn btn-sm btn-dark" href="{% url 'events:export' event.pk 'xlsx' %}">⬇ Download Excel</a>
+      <a class="btn btn-sm btn-ghost" href="{% url 'events:export' event.pk 'csv' %}">CSV</a>
+    </div>
+  </div>
+  {% if q %}<p class="small muted">{{ filtered }} result{{ filtered|pluralize }} for “{{ q }}” · <a href="?">Clear search</a></p>{% endif %}
+
+  <div class="table-wrap">
+    {% if rows %}
+    <table class="data">
+      <thead><tr><th>#</th><th>Registered</th>{% for c in cols %}<th>{{ c.label|truncatechars:40 }}{% if c.is_archived %} <span class="muted">(removed)</span>{% endif %}</th>{% endfor %}</tr></thead>
+      <tbody>
+      {% for s, values in rows %}
+        <tr data-href="{% url 'events:response' event.pk s.number %}">
+          <td class="num"><a href="{% url 'events:response' event.pk s.number %}">{{ s.number }}</a></td>
+          <td class="nowrap muted">{{ s.created_at|date:"j M, g:i A" }}</td>
+          {% for v in values %}<td><span class="clip">{{ v|default:"—" }}</span></td>{% endfor %}
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <div class="empty-state" style="border:0">No registrations match “{{ q }}”.</div>
+    {% endif %}
+  </div>
+
+  {% if page.paginator.num_pages > 1 %}
+  <div class="pager">
+    <span class="muted">Page {{ page.number }} of {{ page.paginator.num_pages }}</span>
+    <span style="display:flex;gap:6px">
+      {% if page.has_previous %}<a class="btn btn-sm btn-ghost" href="?{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page.previous_page_number }}">← Newer</a>{% endif %}
+      {% if page.has_next %}<a class="btn btn-sm btn-ghost" href="?{% if q %}q={{ q|urlencode }}&{% endif %}page={{ page.next_page_number }}">Older →</a>{% endif %}
+    </span>
+  </div>
+  {% endif %}
+  {% else %}
+  <div class="empty-state">
+    <div class="ill"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12h16M12 4v16"/></svg></div>
+    <h2>No registrations yet</h2>
+    <p class="muted" style="max-width:440px;margin:0 auto 16px">Share your link and registrations will appear here as soon as people submit.</p>
+    <div class="linkbox" style="max-width:520px;margin:0 auto">
+      <input type="text" id="emptyLink" value="{{ link }}" readonly aria-label="Registration link" onclick="this.select()">
+      <button class="btn btn-primary" type="button" data-copy="#emptyLink">Copy link</button>
+    </div>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

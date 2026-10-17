@@ -1,0 +1,20 @@
+{% extends "events/public/_pub_base.html" %}
+{% block title %}Registered · {{ event.title }}{% endblock %}
+{% block pub %}
+<div class="pub-top"><div class="progress" style="width:100%"></div></div>
+<main class="pub-main">
+  <div class="pub-form thanks">
+    <div class="tick"><svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <h1>You're registered!</h1>
+    <p class="muted">Thank you for registering for <strong style="color:var(--ink)">{{ event.title }}</strong>.</p>
+    {% if number %}<div class="small muted">Your registration number</div><div class="refno">#{{ number }}</div>{% endif %}
+    {% if event.success_message %}<div class="msg">{{ event.success_message }}</div>{% endif %}
+    {% include "events/public/_facts.html" %}
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px">
+      <button class="btn btn-ghost" type="button" onclick="window.print()">Save / print</button>
+      <a class="btn btn-ghost" href="{% url 'public:form' event.code %}">Register another person</a>
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script>try { localStorage.removeItem('nexform:{{ event.code }}'); } catch (e) {}</script>{% endblock %}

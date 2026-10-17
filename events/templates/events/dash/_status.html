@@ -1,0 +1,1 @@
+{% with s=event.status %}<span class="badge badge-{{ s }}">{% if s == "open" %}Open{% elif s == "closed" %}Closed{% elif s == "ended" %}Ended{% elif s == "full" %}Full{% else %}No questions{% endif %}</span>{% endwith %}

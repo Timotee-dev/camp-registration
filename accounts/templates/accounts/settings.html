@@ -1,0 +1,26 @@
+{% extends "app_base.html" %}
+{% block title %}Account settings · {{ SITE_NAME }}{% endblock %}
+{% block main %}
+<main class="container container-narrow">
+  <div class="crumb"><a href="{% url 'events:dashboard' %}">← My events</a></div>
+  <h1>Account settings</h1>
+  {% include "_messages.html" %}
+  <section class="card">
+    <h2>Profile</h2>
+    <form method="post" class="form-stack" novalidate>{% csrf_token %}<input type="hidden" name="action" value="profile">
+      {% include "_field.html" with f=profile.full_name %}
+      {% include "_field.html" with f=profile.email %}
+      <div><button class="btn btn-primary" type="submit">Save profile</button></div>
+    </form>
+  </section>
+  <section class="card">
+    <h2>Change password</h2>
+    <form method="post" class="form-stack" novalidate>{% csrf_token %}<input type="hidden" name="action" value="password">
+      {% include "_field.html" with f=pw.old_password %}
+      {% include "_field.html" with f=pw.new_password1 %}
+      {% include "_field.html" with f=pw.new_password2 %}
+      <div><button class="btn btn-primary" type="submit">Change password</button></div>
+    </form>
+  </section>
+</main>
+{% endblock %}

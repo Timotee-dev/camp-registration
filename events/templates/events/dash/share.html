@@ -1,0 +1,51 @@
+{% extends "app_base.html" %}
+{% block title %}Share · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container">
+  {% include "events/dash/_event_head.html" %}
+  {% if event.status == "empty" %}<div class="notice notice-warn">Your form has no questions yet. <a href="{% url 'events:build' event.pk %}">Add questions</a> before sharing.</div>
+  {% elif event.status != "open" %}<div class="notice notice-warn">Registration is currently <strong>{% if event.status == 'full' %}full{% elif event.status == 'ended' %}ended{% else %}closed{% endif %}</strong> — people who open the link will see a “closed” message. <a href="{% url 'events:settings' event.pk %}">Change in Settings</a>.</div>{% endif %}
+  <div class="share-grid">
+    <section class="card">
+      <h2>Your registration link</h2>
+      <p class="muted small">Anyone with this link can register. Share it on WhatsApp, social media, or anywhere.</p>
+      <div class="linkbox">
+        <input type="text" id="shareLink" value="{{ link }}" readonly aria-label="Registration link" onclick="this.select()">
+        <button class="btn btn-primary" type="button" data-copy="#shareLink">Copy link</button>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <a class="btn btn-ghost" target="_blank" rel="noopener" href="https://wa.me/?text={{ event.title|urlencode }}%0A{% if event.starts_at %}{{ event.starts_at|date:'D j M Y'|urlencode }}%0A{% endif %}%0ARegister%20here%3A%20{{ link|urlencode }}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366" aria-hidden="true"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm5.6 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.2.1-1.9-.1a17 17 0 0 1-1.7-.6 13.4 13.4 0 0 1-5.1-4.5c-.4-.5-1.2-1.7-1.2-3.2s.8-2.3 1.1-2.6c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .7.5l1 2.4c.1.2.1.4 0 .6l-.4.6-.5.5c-.2.2-.3.4-.1.7.2.3.9 1.5 2 2.4 1.4 1.2 2.5 1.6 2.9 1.8.3.1.5.1.7-.1l1-1.2c.2-.3.4-.3.7-.2l2.3 1.1c.3.2.5.2.6.4.1.1.1.8-.2 1.5Z"/></svg>
+          Share on WhatsApp
+        </a>
+        <button class="btn btn-ghost js-only" type="button" id="nativeShare" hidden>More sharing options</button>
+      </div>
+      <hr style="border:0;border-top:1px solid var(--line-2);margin:22px 0">
+      <h3>Ready-to-send message</h3>
+      <textarea id="shareMsg" rows="5" readonly>{{ event.title }}{% if event.starts_at %}
+📅 {{ event.starts_at|date:"l, j F Y · g:i A" }}{% endif %}{% if event.venue %}
+📍 {{ event.venue }}{% endif %}
+
+Register here: {{ link }}</textarea>
+      <button class="btn btn-ghost btn-sm" style="margin-top:8px" type="button" data-copy="#shareMsg">Copy message</button>
+    </section>
+    <section class="card">
+      <h2>QR code</h2>
+      <p class="muted small">Put it on flyers, banners or slides — people scan it to open the form.</p>
+      <div class="qr">{{ qr_svg|safe }}</div>
+      <a class="btn btn-ghost btn-block" style="margin-top:12px" href="{% url 'events:qr_png' event.pk %}">Download QR code (PNG)</a>
+    </section>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var b = document.getElementById('nativeShare');
+  if (navigator.share && b) {
+    b.hidden = false;
+    b.addEventListener('click', function () {
+      navigator.share({ text: document.getElementById('shareMsg').value }).catch(function () {});
+    });
+  }
+});
+</script>{% endblock %}

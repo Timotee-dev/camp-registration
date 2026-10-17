@@ -1,0 +1,23 @@
+<div class="crumb"><a href="{% url 'events:dashboard' %}">← My events</a></div>
+<div class="event-head">
+  <div style="min-width:0">
+    <h1>{{ event.title }}</h1>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap" class="small muted">
+      {% include "events/dash/_status.html" %}
+      {% if event.starts_at %}<span>{{ event.starts_at|date:"D j M Y, g:i A" }}</span>{% endif %}
+      {% if event.venue %}<span>· {{ event.venue }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="event-actions">
+    <a class="btn btn-sm btn-ghost" href="{{ event.get_public_url }}" target="_blank" rel="noopener">Open form ↗</a>
+    <a class="btn btn-sm btn-primary" href="{% url 'events:share' event.pk %}" style="--accent:var(--brand)">Share link</a>
+  </div>
+</div>
+<nav class="tabs" aria-label="Event sections">
+  <a href="{% url 'events:build' event.pk %}" class="{% if tab == 'build' %}active{% endif %}">Questions</a>
+  <a href="{% url 'events:share' event.pk %}" class="{% if tab == 'share' %}active{% endif %}">Share</a>
+  <a href="{% url 'events:responses' event.pk %}" class="{% if tab == 'responses' %}active{% endif %}">Registrations <span class="count">{{ event.submissions.count }}</span></a>
+  <a href="{% url 'events:summary' event.pk %}" class="{% if tab == 'summary' %}active{% endif %}">Summary</a>
+  <a href="{% url 'events:settings' event.pk %}" class="{% if tab == 'settings' %}active{% endif %}">Settings</a>
+</nav>
+{% include "_messages.html" %}

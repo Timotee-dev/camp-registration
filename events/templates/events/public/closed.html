@@ -1,0 +1,17 @@
+{% extends "events/public/_pub_base.html" %}
+{% block pub %}
+<main class="pub-main">
+  <div class="pub-form intro">
+    {% if event.organiser_name %}<div class="chip-accent">{{ event.organiser_name }}</div>{% endif %}
+    <h1>{{ event.title }}</h1>
+    <div class="notice notice-warn" style="font-size:1rem">
+      {% if event.status == "full" %}Registration is full — the maximum number of registrations has been reached.
+      {% elif event.status == "ended" %}Registration has ended.
+      {% elif event.status == "empty" %}This form isn't ready yet. Please check back soon.
+      {% else %}Registration is closed.{% endif %}
+    </div>
+    {% include "events/public/_facts.html" %}
+    {% if is_owner %}<a class="btn btn-primary" href="{% if event.status == 'empty' %}{% url 'events:build' event.pk %}{% else %}{% url 'events:settings' event.pk %}{% endif %}">{% if event.status == 'empty' %}Add questions{% else %}Change registration settings{% endif %}</a>{% endif %}
+  </div>
+</main>
+{% endblock %}

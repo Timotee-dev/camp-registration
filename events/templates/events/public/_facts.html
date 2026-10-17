@@ -1,0 +1,7 @@
+{% if event.starts_at or event.venue or event.contact %}
+<div class="facts">
+  {% if event.starts_at %}<div class="fact"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><div><b>When</b>{{ event.starts_at|date:"l, j F Y · g:i A" }}{% if event.ends_at %}<br><span class="muted small">until {% if event.ends_at|date:"Ymd" == event.starts_at|date:"Ymd" %}{{ event.ends_at|date:"g:i A" }}{% else %}{{ event.ends_at|date:"l, j F Y · g:i A" }}{% endif %}</span>{% endif %}</div></div>{% endif %}
+  {% if event.venue %}<div class="fact"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div><b>Where</b>{{ event.venue }}</div></div>{% endif %}
+  {% if event.contact %}<div class="fact"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><div><b>Enquiries</b>{{ event.contact }}</div></div>{% endif %}
+</div>
+{% endif %}

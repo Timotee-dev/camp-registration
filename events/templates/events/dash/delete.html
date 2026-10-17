@@ -1,0 +1,15 @@
+{% extends "app_base.html" %}
+{% block title %}Delete · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container container-narrow">
+  {% include "events/dash/_event_head.html" %}
+  <form method="post" class="card form-stack danger-zone">
+    {% csrf_token %}
+    <h2 style="margin:0">Delete “{{ event.title }}”?</h2>
+    <p style="margin:0">This permanently deletes the form and <strong>{{ event.submissions.count }} registration{{ event.submissions.count|pluralize }}</strong>. The link will stop working. This can't be undone.</p>
+    {% if event.submissions.exists %}<p class="small" style="margin:0"><a href="{% url 'events:export' event.pk 'xlsx' %}">Download registrations as Excel first</a></p>{% endif %}
+    <div class="field"><label for="confirm">Type <strong>DELETE</strong> to confirm</label><input id="confirm" name="confirm" type="text" autocomplete="off" required></div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap"><button class="btn btn-danger" type="submit">Delete permanently</button><a class="btn btn-ghost" href="{% url 'events:settings' event.pk %}">Cancel</a></div>
+  </form>
+</main>
+{% endblock %}

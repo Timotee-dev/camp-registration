@@ -3,9 +3,10 @@
 set -o errexit
 pip install -r requirements.txt
 python manage.py collectstatic --no-input
-python manage.py migrate
+python manage.py migrate --no-input
 
-# Create the admin account from env vars (DJANGO_SUPERUSER_USERNAME/EMAIL/PASSWORD) if set.
-if [ -n "$DJANGO_SUPERUSER_USERNAME" ]; then
-  python manage.py createsuperuser --noinput || echo "Superuser already exists, skipping."
+# Optional: create a site admin (for /admin/) from env vars, once.
+if [ -n "$DJANGO_SUPERUSER_EMAIL" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
+  DJANGO_SUPERUSER_USERNAME="$DJANGO_SUPERUSER_EMAIL" python manage.py createsuperuser --noinput \
+    || echo "Admin account already exists, skipping."
 fi

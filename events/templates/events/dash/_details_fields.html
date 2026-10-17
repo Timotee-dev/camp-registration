@@ -1,0 +1,18 @@
+{% include "_field.html" with f=form.title %}
+{% include "_field.html" with f=form.description %}
+{% include "_field.html" with f=form.venue %}
+<div class="grid-2">
+  {% include "_field.html" with f=form.starts_at %}
+  {% include "_field.html" with f=form.ends_at %}
+</div>
+<div class="grid-2">
+  {% include "_field.html" with f=form.organiser_name %}
+  {% include "_field.html" with f=form.contact %}
+</div>
+<div class="field">
+  <span class="label">{{ form.accent.label }}</span>
+  <div class="swatches" role="radiogroup" aria-label="Form colour">
+    {% for r in form.accent %}<label title="{{ r.choice_label }}">{{ r.tag }}<span class="sw" style="background:{{ r.data.value }}"></span><span class="sr-only">{{ r.choice_label }}</span></label>{% endfor %}
+  </div>
+  <div class="help">The colour of your registration form's buttons and highlights.</div>
+</div>

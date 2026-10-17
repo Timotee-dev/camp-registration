@@ -1,0 +1,17 @@
+{% extends "app_base.html" %}
+{% block title %}Log in · {{ SITE_NAME }}{% endblock %}
+{% block main %}
+<main class="auth"><div class="card">
+  <h1>Welcome back</h1>
+  <p class="muted">Log in to manage your events.</p>
+  {% if form.non_field_errors %}<div class="notice notice-err">{{ form.non_field_errors|join:" " }}</div>{% endif %}
+  <form method="post" class="form-stack" novalidate>
+    {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+    {% include "_field.html" with f=form.email %}
+    {% include "_field.html" with f=form.password %}
+    {% if reset_enabled %}<div class="small" style="margin-top:-8px"><a href="{% url 'accounts:password_reset' %}">Forgot password?</a></div>{% endif %}
+    <button class="btn btn-primary btn-block btn-lg" type="submit">Log in</button>
+  </form>
+  <p class="alt">New here? <a href="{% url 'accounts:signup' %}{% if next %}?next={{ next|urlencode }}{% endif %}">Create a free account</a></p>
+</div></main>
+{% endblock %}

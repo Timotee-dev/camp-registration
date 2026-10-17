@@ -1,0 +1,39 @@
+{% extends "app_base.html" %}
+{% block title %}Summary · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container">
+  {% include "events/dash/_event_head.html" %}
+  {% if not total %}
+    <div class="empty-state"><h2>Nothing to summarise yet</h2><p class="muted" style="margin:0">Charts appear here once people start registering.</p></div>
+  {% else %}
+  <div class="summary-grid">
+    <section class="card" style="grid-column:1/-1">
+      <div class="card-head"><h3>Registrations — last 14 days</h3><span class="small muted">{{ total }} total</span></div>
+      <div class="cols" role="img" aria-label="Registrations per day for the last 14 days">
+        {% for d, n, pct in trend %}<div class="c" title="{{ d|date:'D j M' }}: {{ n }}"><span class="cnt">{% if n %}{{ n }}{% endif %}</span><span class="stick" style="height:{{ pct }}%"></span><span>{{ d|date:"j" }}</span></div>{% endfor %}
+      </div>
+    </section>
+    {% for q, rows, answered in tallies %}
+    <section class="card">
+      <div class="card-head"><h3>{{ q.label }}{% if q.is_archived %} <span class="muted small">(removed)</span>{% endif %}</h3><span class="small muted nowrap">{{ answered }} answered</span></div>
+      <div class="bars">
+        {% for label, count, pct in rows %}
+        <div class="bar-row"><span>{{ label }}</span><span class="v">{{ count }} · {{ pct }}%</span><span class="track"><span class="fill" style="width:{{ pct }}%;display:block;background:{{ event.accent }}"></span></span></div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endfor %}
+    {% if completion %}
+    <section class="card">
+      <div class="card-head"><h3>Optional questions answered</h3></div>
+      <div class="bars">
+        {% for q, n, pct in completion %}
+        <div class="bar-row"><span>{{ q.label|truncatechars:50 }}</span><span class="v">{{ n }} · {{ pct }}%</span><span class="track"><span class="fill" style="width:{{ pct }}%;display:block"></span></span></div>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

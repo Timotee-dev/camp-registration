@@ -1,0 +1,1 @@
+<a class="logo" href="{% if user.is_authenticated %}{% url 'events:dashboard' %}{% else %}{% url 'home' %}{% endif %}"><span class="logo-mark"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 4h10M3 8h10M3 12h6"/></svg></span>{{ SITE_NAME }}</a>

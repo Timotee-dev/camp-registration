@@ -1,0 +1,94 @@
+{% extends "events/public/_pub_base.html" %}
+{% load static %}
+{% block pub %}
+<div class="pub-top" aria-hidden="true"><div class="progress" id="progress"></div></div>
+<div class="pub-head">
+  <span class="evname">{{ event.title }}</span>
+  <span class="stepcount js-only" id="stepCount" aria-live="polite"></span>
+</div>
+<main class="pub-main">
+  <form method="post" class="pub-form" id="stepper" novalidate
+        data-code="{{ event.code }}" data-total="{{ total }}" data-has-errors="{{ has_errors|yesno:'1,0' }}">
+    {% csrf_token %}
+    <div style="position:absolute;left:-9999px" aria-hidden="true"><label>Leave this empty<input type="text" name="{{ honeypot }}" tabindex="-1" autocomplete="off"></label></div>
+
+    {% if form_error %}<div class="notice notice-err" role="alert">{{ form_error }}</div>{% endif %}
+
+    <section class="step intro" data-step="intro">
+      {% if event.organiser_name %}<div class="chip-accent">{{ event.organiser_name }}</div>{% endif %}
+      <h1>{{ event.title }}</h1>
+      {% if event.description %}<div class="desc">{{ event.description }}</div>{% endif %}
+      {% include "events/public/_facts.html" %}
+      <div class="start-row js-only">
+        <button type="button" class="btn btn-primary btn-lg" data-next>Start registration →</button>
+        <span class="small muted">{{ total }} question{{ total|pluralize }} · about {{ minutes }} min</span>
+      </div>
+    </section>
+
+    {% for s in steps %}{% with q=s.q %}
+    <section class="step{% if s.error %} has-error{% endif %}" data-step="{{ forloop.counter }}" data-qid="{{ q.id }}"
+             data-type="{{ q.qtype }}" data-required="{{ q.required|yesno:'1,0' }}" data-label="{{ q.label }}">
+      <div class="q-count">{{ forloop.counter }} <span aria-hidden="true">→</span>{% if not q.required %} <span class="q-optional">Optional</span>{% endif %}</div>
+      {% if q.is_choice or q.qtype == "yes_no" %}
+        <div class="q-label" id="lbl-{{ q.id }}">{{ q.label }}{% if q.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</div>
+      {% else %}
+        <label class="q-label" for="q_{{ q.id }}" id="lbl-{{ q.id }}">{{ q.label }}{% if q.required %} <span class="req" aria-hidden="true">*</span>{% endif %}</label>
+      {% endif %}
+      {% if q.help_text %}<div class="q-help" id="help-{{ q.id }}">{{ q.help_text }}</div>{% endif %}
+
+      <div class="q-input">
+      {% if q.qtype == "short_text" %}
+        <input type="text" id="q_{{ q.id }}" name="q_{{ q.id }}" value="{{ s.value }}" maxlength="300" placeholder="Type your answer here…" autocomplete="{% with l=q.label|lower %}{% if l == 'full name' or l == 'name' or l == 'your name' or l == 'your full name' %}name{% else %}off{% endif %}{% endwith %}"{% if q.help_text %} aria-describedby="help-{{ q.id }}"{% endif %}>
+      {% elif q.qtype == "long_text" %}
+        <textarea id="q_{{ q.id }}" name="q_{{ q.id }}" maxlength="3000" rows="4" placeholder="Type your answer here…"{% if 'address' in q.label|lower %} autocomplete="street-address"{% endif %}>{{ s.value }}</textarea>
+        <div class="small muted js-only fine-only" style="margin-top:6px">Shift + Enter for a new line</div>
+      {% elif q.qtype == "email" %}
+        <input type="email" id="q_{{ q.id }}" name="q_{{ q.id }}" value="{{ s.value }}" inputmode="email" autocomplete="email" placeholder="name@example.com" autocapitalize="off" spellcheck="false">
+      {% elif q.qtype == "phone" %}
+        <input type="tel" id="q_{{ q.id }}" name="q_{{ q.id }}" value="{{ s.value }}" inputmode="tel" autocomplete="tel" placeholder="e.g. 0803 123 4567" maxlength="25">
+      {% elif q.qtype == "number" %}
+        <input type="text" id="q_{{ q.id }}" name="q_{{ q.id }}" value="{{ s.value }}" inputmode="decimal" placeholder="Type a number…" maxlength="20">
+      {% elif q.qtype == "date" %}
+        <input type="date" id="q_{{ q.id }}" name="q_{{ q.id }}" value="{{ s.value }}">
+      {% elif q.qtype == "dropdown" %}
+        <select id="q_{{ q.id }}" name="q_{{ q.id }}">
+          <option value="">Select an option…</option>
+          {% for o in q.choices %}<option value="{{ o }}"{% if o == s.value %} selected{% endif %}>{{ o }}</option>{% endfor %}
+        </select>
+      {% elif q.qtype == "multi_choice" %}
+        <div class="choices" role="group" aria-labelledby="lbl-{{ q.id }}">
+          {% for o in q.choices %}<label class="choice multi"><input type="checkbox" name="q_{{ q.id }}" value="{{ o }}"{% if o in s.value %} checked{% endif %}><span class="mark"></span><span>{{ o }}</span>{% if forloop.counter <= 26 %}<span class="key">{{ forloop.counter0|add:65|stringformat:"c" }}</span>{% endif %}</label>{% endfor %}
+        </div>
+        <div class="small muted" style="margin-top:8px">Choose as many as apply.</div>
+      {% else %}{# single_choice and yes_no #}
+        <div class="choices{% if q.qtype == 'yes_no' %} yesno{% endif %}" role="radiogroup" aria-labelledby="lbl-{{ q.id }}">
+          {% for o in q.choices %}<label class="choice"><input type="radio" name="q_{{ q.id }}" value="{{ o }}"{% if o == s.value %} checked{% endif %}><span class="mark"></span><span>{{ o }}</span>{% if forloop.counter <= 26 %}<span class="key">{{ forloop.counter0|add:65|stringformat:"c" }}</span>{% endif %}</label>{% endfor %}
+        </div>
+      {% endif %}
+      </div>
+      <p class="q-error" role="alert">{% if s.error %}{{ s.error }}{% endif %}</p>
+
+      <div class="step-nav js-only">
+        <button type="button" class="btn btn-ghost back-btn" data-back aria-label="Previous question">← Back</button>
+        <span class="hint">press <b>Enter ↵</b></span>
+        <button type="button" class="btn btn-primary" data-next>{% if forloop.last %}Review answers{% else %}Next{% endif %} →</button>
+      </div>
+    </section>
+    {% endwith %}{% endfor %}
+
+    <section class="step review js-only" data-step="review">
+      <div class="q-count">Almost done</div>
+      <h2 class="q-label">Check your answers</h2>
+      <p class="q-help">Tap <b>Edit</b> to change anything, then submit.</p>
+      <div class="review-list" id="reviewList"></div>
+      <div class="step-nav">
+        <button type="button" class="btn btn-ghost back-btn" data-back>← Back</button>
+        <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">Submit registration</button>
+      </div>
+    </section>
+
+    <div class="nojs-only"><button type="submit" class="btn btn-primary btn-lg btn-block">Submit registration</button></div>
+  </form>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/stepper.js' %}" defer></script>{% endblock %}

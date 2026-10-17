@@ -1,0 +1,42 @@
+{% extends "app_base.html" %}
+{% load static %}
+{% block title %}Questions · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container">
+  {% include "events/dash/_event_head.html" %}
+  <div class="builder" id="builder"
+       data-api="{% url 'events:api_questions' event.pk %}"
+       data-preview="{{ event.get_public_url }}">
+    <div>
+      <div class="qlist" id="qlist" aria-live="polite"></div>
+      <div class="card" style="margin-top:14px;padding:18px">
+        <h3 style="margin-bottom:12px">Add a question</h3>
+        <div class="addq" id="addq">
+          {% for value, label in types %}<button type="button" data-type="{{ value }}"><span class="ico" aria-hidden="true"></span>{{ label }}</button>{% endfor %}
+        </div>
+      </div>
+    </div>
+    <aside class="builder-side">
+      <div class="card savecard">
+        <div class="savebar">
+          <button class="btn btn-primary btn-block" id="saveBtn" type="button">Save questions</button>
+          <span class="state" id="saveState">All changes saved</span>
+        </div>
+        <a class="btn btn-ghost btn-block" style="margin-top:8px" href="{{ event.get_public_url }}" target="_blank" rel="noopener" id="previewBtn">Preview form ↗</a>
+      </div>
+      <div class="card small" style="padding:18px">
+        <h3>Tips</h3>
+        <ul style="margin:0;padding-left:18px;display:grid;gap:6px" class="muted">
+          <li>People see one question per page, in this order.</li>
+          <li>Turn on <b>No duplicates</b> for phone or email so nobody registers twice.</li>
+          <li>Removing a question that already has answers hides it from the form but keeps the answers in your downloads.</li>
+          <li>Press <kbd>Ctrl</kbd>+<kbd>S</kbd> to save.</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+  {{ questions|json_script:"questions-data" }}
+  {{ builder_config|json_script:"builder-config" }}
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/builder.js' %}" defer></script>{% endblock %}

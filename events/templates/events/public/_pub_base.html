@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ event.title }}{% endblock %}
+{% block meta %}<meta name="description" content="{% if event.description %}{{ event.description|truncatechars:150 }}{% else %}Register for {{ event.title }}{% endif %}">
+<meta property="og:title" content="{{ event.title }}">
+<meta property="og:description" content="{% if event.starts_at %}{{ event.starts_at|date:'D j M Y' }}{% if event.venue %} · {{ event.venue }}{% endif %} — {% endif %}Register here">
+<meta name="robots" content="noindex">{% endblock %}
+{% block theme %}{{ event.accent }}{% endblock %}
+{% block head %}<style>:root{--accent:{{ event.accent }}}</style>{% endblock %}
+{% block body %}
+{% if is_owner %}<div class="owner-bar">You're viewing your own form. Registrations you submit here are real. <a href="{% url 'events:responses' event.pk %}">Back to dashboard</a></div>{% endif %}
+<div class="pub">
+  {% block pub %}{% endblock %}
+  <footer class="pub-foot">{% if event.organiser_name %}Organised by {{ event.organiser_name }} · {% endif %}Made with <a href="{% url 'home' %}">{{ SITE_NAME }}</a></footer>
+</div>
+{% endblock %}

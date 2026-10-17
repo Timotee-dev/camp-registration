@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block body %}
+<header class="topnav"><div class="topnav-inner">
+  {% include "_logo.html" %}
+  <div class="spacer"></div>
+  <nav>
+  {% if user.is_authenticated %}
+    <a class="navlink" href="{% url 'events:dashboard' %}">My events</a>
+    <details class="usermenu">
+      <summary aria-label="Account menu"><span class="avatar">{{ user.first_name|default:user.email|first|upper }}</span></summary>
+      <div class="menu">
+        <div class="who"><div style="font-weight:600">{{ user.first_name }}</div><div class="small muted" style="overflow-wrap:anywhere">{{ user.email }}</div></div>
+        <a href="{% url 'events:create' %}">New event</a>
+        <a href="{% url 'accounts:settings' %}">Account settings</a>
+        <form method="post" action="{% url 'accounts:logout' %}" style="margin:0">{% csrf_token %}<button type="submit">Log out</button></form>
+      </div>
+    </details>
+  {% else %}
+    <a class="navlink" href="{% url 'accounts:login' %}">Log in</a>
+    <a class="btn btn-sm btn-dark" href="{% url 'accounts:signup' %}">Sign up free</a>
+  {% endif %}
+  </nav>
+</div></header>
+{% block main %}{% endblock %}
+{% endblock %}

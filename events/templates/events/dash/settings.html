@@ -1,0 +1,37 @@
+{% extends "app_base.html" %}
+{% block title %}Settings · {{ event.title }}{% endblock %}
+{% block main %}
+<main class="container container-narrow">
+  {% include "events/dash/_event_head.html" %}
+  <form method="post" class="card form-stack" novalidate>
+    {% csrf_token %}<input type="hidden" name="section" value="details">
+    <h2 style="margin:0">Event details</h2>
+    {% with form=details %}{% include "events/dash/_details_fields.html" %}{% endwith %}
+    <div><button class="btn btn-primary" type="submit" style="--accent:var(--brand)">Save details</button></div>
+  </form>
+
+  <form method="post" class="card form-stack" novalidate>
+    {% csrf_token %}<input type="hidden" name="section" value="rules">
+    <h2 style="margin:0">Registration</h2>
+    <label class="switch">{{ rules.is_open }}<span class="track"></span>{{ rules.is_open.label }}</label>
+    <div class="grid-2">
+      {% include "_field.html" with f=rules.close_at %}
+      {% include "_field.html" with f=rules.max_responses %}
+    </div>
+    {% include "_field.html" with f=rules.success_message %}
+    <div><button class="btn btn-primary" type="submit" style="--accent:var(--brand)">Save registration settings</button></div>
+  </form>
+
+  <section class="card">
+    <h2>Duplicate event</h2>
+    <p class="muted small">Make a copy with the same questions and details — handy for next year's edition. Registrations are not copied.</p>
+    <form method="post" action="{% url 'events:duplicate' event.pk %}">{% csrf_token %}<button class="btn btn-ghost" type="submit">Duplicate</button></form>
+  </section>
+
+  <section class="card danger-zone">
+    <h2>Delete event</h2>
+    <p class="muted small">Permanently deletes this event, its form and all {{ event.submissions.count }} registration{{ event.submissions.count|pluralize }}. Download them first if you need them.</p>
+    <a class="btn btn-danger-ghost" href="{% url 'events:delete' event.pk %}">Delete this event…</a>
+  </section>
+</main>
+{% endblock %}
