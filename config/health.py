@@ -16,7 +16,19 @@ def _db_status():
         if missing or pending:
             return f"db: CONNECTED ({vendor}) but NOT MIGRATED. missing tables: {', '.join(missing) or '-'}; " \
                    f"pending migrations: {len(pending)}"
-        return f"db: ok ({vendor})"
+        from django.contrib.auth import get_user_model
+        from django.conf import settings as dj_settings
+        with connection.cursor() as c:
+            c.execute("SELECT DISTINCT app FROM django_migrations")
+            recorded = {r[0] for r in c.fetchall()}
+        ours = {a.rsplit(".", 1)[-1] for a in dj_settings.INSTALLED_APPS} | {"auth", "contenttypes", "sessions", "admin"}
+        foreign = sorted(recorded - ours)
+        users = get_user_model().objects.count()
+        from events.models import Event
+        line = f"db: ok ({vendor}); users: {users}; events: {Event.objects.count()}"
+        if foreign:
+            line += f"; WARNING shared with another project (apps: {', '.join(foreign)})"
+        return line
     except Exception as e:  # noqa: BLE001
         import re
         from django.conf import settings
