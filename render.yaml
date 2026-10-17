@@ -2,6 +2,7 @@ services:
   - type: web
     name: camp-registration
     runtime: python
+    plan: free
     buildCommand: ./build.sh
     startCommand: gunicorn config.wsgi:application
     envVars:
@@ -26,6 +27,18 @@ services:
       - key: EMAIL_HOST_PASSWORD
         sync: false
       - key: DEFAULT_FROM_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_USERNAME
+        sync: false
+      - key: DJANGO_SUPERUSER_EMAIL
+        sync: false
+      - key: DJANGO_SUPERUSER_PASSWORD
+        sync: false
+      - key: SITE_NAME
+        sync: false
+      - key: ORGANISER_NAME
+        sync: false
+      - key: TERMII_SENDER_ID
         sync: false
 databases:
   - name: camp-registration-db
