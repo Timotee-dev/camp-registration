@@ -48,9 +48,55 @@ class HealthCheckMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        if request.path.startswith("/healthz/lasterror"):
+            return HttpResponse(last_error_text(), content_type="text/plain")
         if request.path == "/healthz" or request.path.startswith("/healthz/db"):
             body = "ok"
             if request.GET.get("db") or request.path.startswith("/healthz/db"):
                 body += "\n" + _db_status()
             return HttpResponse(body, content_type="text/plain")
         return self.get_response(request)
+
+
+# ---------------------------------------------------------------- last error (redacted) for diagnosis
+import os as _os
+import re as _re
+import traceback as _tb
+
+from django.core.signals import got_request_exception
+from django.dispatch import receiver
+
+_LAST_ERR = "/tmp/nexform_last_error.txt"
+
+
+def _redact(s):
+    s = _re.sub(r"[\w.+-]+@[\w.-]+", "<email>", s)
+    s = _re.sub(r"postgres(ql)?://\S+", "<db-url>", s)
+    return s[:300]
+
+
+@receiver(got_request_exception)
+def _remember_error(sender, request=None, **kwargs):
+    import sys
+    etype, exc, tb = sys.exc_info()
+    if exc is None:
+        return
+    frames = [f for f in _tb.extract_tb(tb)]
+    ours = [f for f in frames if "/site-packages/" not in f.filename and "/dist-packages/" not in f.filename] or frames
+    where = " <- ".join(f"{_os.path.basename(f.filename)}:{f.lineno} {f.name}" for f in reversed(ours[-4:]))
+    last = frames[-1] if frames else None
+    deep = f"{_os.path.basename(last.filename)}:{last.lineno}" if last else ""
+    path = getattr(request, "path", "?")
+    try:
+        with open(_LAST_ERR, "w") as fh:
+            fh.write(f"path: {path}\nerror: {etype.__name__}: {_redact(str(exc))}\nwhere: {where}\nraised in: {deep}\n")
+    except OSError:
+        pass
+
+
+def last_error_text():
+    try:
+        with open(_LAST_ERR) as fh:
+            return fh.read()
+    except OSError:
+        return "no errors recorded since last restart\n"
