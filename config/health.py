@@ -18,8 +18,14 @@ def _db_status():
                    f"pending migrations: {len(pending)}"
         return f"db: ok ({vendor})"
     except Exception as e:  # noqa: BLE001
-        msg = str(e).splitlines()[0][:160] if type(e).__name__ == "ProgrammingError" else ""
-        return f"db: ERROR {type(e).__name__} {msg}".strip()
+        import re
+        from django.conf import settings
+        msg = str(e).splitlines()[0][:200] if str(e) else ""
+        # never reveal credentials or hosts
+        msg = re.sub(r"[\w.-]+@[\w.-]+", "<redacted>", msg)
+        msg = re.sub(r'"[\w.-]+\.(neon\.tech|render\.com|amazonaws\.com)[^"]*"', "<host>", msg)
+        engine = settings.DATABASES["default"]["ENGINE"].rsplit(".", 1)[-1]
+        return f"db: ERROR ({engine}) {type(e).__name__}: {msg}".strip()
 
 
 class HealthCheckMiddleware:
@@ -30,9 +36,9 @@ class HealthCheckMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        if request.path == "/healthz":
+        if request.path == "/healthz" or request.path.startswith("/healthz/db"):
             body = "ok"
-            if request.GET.get("db"):
+            if request.GET.get("db") or request.path.startswith("/healthz/db"):
                 body += "\n" + _db_status()
             return HttpResponse(body, content_type="text/plain")
         return self.get_response(request)
