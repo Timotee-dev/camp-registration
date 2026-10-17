@@ -56,6 +56,37 @@
     });
   });
 
+  // Stop double submissions (double taps, impatient clicks on a slow connection).
+  document.addEventListener('submit', function (e) {
+    var form = e.target;
+    if (e.defaultPrevented || form.hasAttribute('data-allow-resubmit') || form.id === 'stepper') return;
+    if (form.dataset.submitting === '1') { e.preventDefault(); return; }
+    form.dataset.submitting = '1';
+    var buttons = form.querySelectorAll('button[type=submit], button:not([type])');
+    setTimeout(function () {           // after the browser has captured the form data
+      buttons.forEach(function (b) {
+        b.disabled = true;
+        if (!b.dataset.label) { b.dataset.label = b.textContent; }
+        if (b.textContent.trim().length > 2) b.textContent = 'Please wait…';
+      });
+    }, 0);
+    // Safety: re-enable after 15s in case the request never completes.
+    setTimeout(function () { unlock(form); }, 15000);
+  });
+
+  function unlock(form) {
+    form.dataset.submitting = '';
+    form.querySelectorAll('button[disabled]').forEach(function (b) {
+      b.disabled = false;
+      if (b.dataset.label) b.textContent = b.dataset.label;
+    });
+  }
+
+  // Back/forward cache: forms come back unlocked.
+  window.addEventListener('pageshow', function (e) {
+    if (e.persisted) document.querySelectorAll('form[data-submitting="1"]').forEach(unlock);
+  });
+
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
       document.querySelectorAll('details.usermenu[open]').forEach(function (d) { d.removeAttribute('open'); });

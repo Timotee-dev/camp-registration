@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.db import IntegrityError
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -21,9 +22,18 @@ def signup(request):
         return redirect("events:dashboard")
     form = SignupForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
-        user = form.save()
+        try:
+            user = form.save()
+        except IntegrityError:
+            # Same form submitted twice at once (double click on a slow connection):
+            # the first request created the account. Log in if the password matches.
+            user = authenticate(request, username=form.cleaned_data["email"], password=form.cleaned_data["password"])
+            if user is None:
+                form.add_error("email", "An account with this email already exists. Try logging in.")
+                return render(request, "accounts/signup.html", {"form": form, "next": request.GET.get("next", "")})
+        else:
+            messages.success(request, f"Welcome, {user.first_name.split()[0]}! Create your first event below.")
         login(request, user, backend="accounts.backends.EmailBackend")
-        messages.success(request, f"Welcome, {user.first_name.split()[0]}! Create your first event below.")
         return redirect(_safe_next(request))
     return render(request, "accounts/signup.html", {"form": form, "next": request.GET.get("next", "")})
 

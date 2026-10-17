@@ -366,3 +366,21 @@ class ErrorPageTests(TestCase):
         self.assertIn(b"db: ok", r.content)
         r = self.client.get("/r/doesnotexist/")
         self.assertEqual(r.status_code, 404)
+
+
+class DoubleSubmitTests(TestCase):
+    def test_signup_race_logs_in_instead_of_crashing(self):
+        from unittest import mock
+        from django.db import IntegrityError
+        from accounts.forms import SignupForm
+        make_user("race@example.com", pw="Camp-Meeting-26")
+        with mock.patch.object(SignupForm, "clean_email", lambda self: self.cleaned_data["email"].lower()), \
+             mock.patch.object(SignupForm, "save", side_effect=IntegrityError("dup")):
+            r = self.client.post(reverse("accounts:signup"),
+                                 {"full_name": "Race", "email": "race@example.com", "password": "Camp-Meeting-26"})
+        self.assertRedirects(r, reverse("events:dashboard"))
+        with mock.patch.object(SignupForm, "clean_email", lambda self: self.cleaned_data["email"].lower()), \
+             mock.patch.object(SignupForm, "save", side_effect=IntegrityError("dup")):
+            r = self.client_class().post(reverse("accounts:signup"),
+                                         {"full_name": "Race", "email": "race@example.com", "password": "Other-Pass-99"})
+        self.assertContains(r, "already exists")
