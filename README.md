@@ -74,7 +74,7 @@ Manual setup instead of Blueprint (**New + → Web Service**):
 | Setting | Value |
 |---|---|
 | Build Command | `bash build.sh` |
-| Start Command | `gunicorn config.wsgi:application --workers 2 --timeout 60` |
+| Start Command | `python manage.py migrate --no-input && gunicorn config.wsgi:application --workers 2 --timeout 60` |
 | Env: `PYTHON_VERSION` | `3.12.7` |
 | Env: `SECRET_KEY` | click Generate |
 | Env: `DEBUG` | `False` |

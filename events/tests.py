@@ -358,3 +358,11 @@ class HealthCheckTests(TestCase):
     def test_healthz_ignores_host_and_https_checks(self):
         r = self.client.get("/healthz", HTTP_HOST="10.0.0.5:10000")
         self.assertEqual((r.status_code, r.content), (200, b"ok"))
+
+
+class ErrorPageTests(TestCase):
+    def test_db_health_and_404(self):
+        r = self.client.get("/healthz?db=1")
+        self.assertIn(b"db: ok", r.content)
+        r = self.client.get("/r/doesnotexist/")
+        self.assertEqual(r.status_code, 404)
