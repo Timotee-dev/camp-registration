@@ -2,12 +2,12 @@
 # because Render's own free database is deleted after 30 days.
 services:
   - type: web
-    name: nexform
+    name: camp-registration
     runtime: python
     plan: free
     buildCommand: bash build.sh
     startCommand: gunicorn config.wsgi:application --workers 2 --timeout 60
-    healthCheckPath: /
+    healthCheckPath: /healthz
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.7

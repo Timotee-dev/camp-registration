@@ -352,3 +352,9 @@ class PhoneTests(TestCase):
         for raw in ["08031234567", "0803 123 4567", "+2348031234567", "234 803 123 4567", "8031234567", "(0803) 123-4567"]:
             self.assertEqual(normalise_phone(raw), "08031234567", raw)
         self.assertEqual(normalise_phone("+44 20 7946 0958"), "+442079460958")
+
+
+class HealthCheckTests(TestCase):
+    def test_healthz_ignores_host_and_https_checks(self):
+        r = self.client.get("/healthz", HTTP_HOST="10.0.0.5:10000")
+        self.assertEqual((r.status_code, r.content), (200, b"ok"))
