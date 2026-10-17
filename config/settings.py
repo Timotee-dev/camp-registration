@@ -22,7 +22,10 @@ def env_bool(name, default=False):
 
 TESTING = "test" in sys.argv
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-only-insecure-key-change-me")
-DEBUG = env_bool("DEBUG", True)
+# Render sets RENDER=true on its servers. There we are always in production: DEBUG is forced off
+# (it would show secrets on error pages) and a real database is required.
+ON_RENDER = os.getenv("RENDER", "").lower() == "true"
+DEBUG = False if ON_RENDER else env_bool("DEBUG", True)
 
 ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
@@ -80,10 +83,11 @@ WSGI_APPLICATION = "config.wsgi.application"
 # Locally: SQLite. In production DATABASE_URL is REQUIRED (e.g. a free Neon Postgres),
 # because Render's disk is wiped on every restart and SQLite data would be lost.
 DATABASE_URL = os.getenv("DATABASE_URL", "")
-if not DATABASE_URL and not DEBUG and not TESTING and "collectstatic" not in sys.argv:
+if not DATABASE_URL and (ON_RENDER or not DEBUG) and not TESTING and "collectstatic" not in sys.argv:
     raise ImproperlyConfigured(
-        "DATABASE_URL is not set. In production you must connect a Postgres database "
-        "(see README: 'Free database with Neon')."
+        "DATABASE_URL is not set. Add it in Render > your service > Environment "
+        "(a free Neon Postgres connection string, see README). Without it every registration "
+        "would be lost on the next restart."
     )
 DATABASES = {
     "default": dj_database_url.parse(DATABASE_URL, conn_max_age=600, conn_health_checks=True)
