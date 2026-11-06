@@ -403,3 +403,21 @@ class EnsureAdminTests(TestCase):
         self.assertTrue(normal.is_superuser and normal.check_password("My-own-pass-1"))
         self.assertTrue(self.client.login(username="ME@example.com", password="My-own-pass-1"))
         self.assertEqual(self.client.get("/admin/").status_code, 200)
+
+
+class AdminLoginTests(TestCase):
+    def test_admin_alias_and_status(self):
+        import os
+        from unittest import mock
+        from django.core.management import call_command
+        env = {"DJANGO_SUPERUSER_EMAIL": " Boss@Example.com ", "DJANGO_SUPERUSER_PASSWORD": " Adm1n-pass-26 \n"}
+        with mock.patch.dict(os.environ, env):
+            call_command("ensure_admin", stdout=io.StringIO())
+            r = self.client.post("/admin/login/?next=/admin/", {"username": "admin", "password": "Adm1n-pass-26"})
+            self.assertRedirects(r, "/admin/", fetch_redirect_response=False)
+            status = self.client_class().get("/healthz/db").content.decode()
+        self.assertIn("is admin: YES", status)
+        self.assertIn("password env var matches account: YES", status)
+        self.assertNotIn("boss@example.com", status)
+        r = self.client_class().post("/admin/login/?next=/admin/", {"username": "boss@example.com", "password": "Adm1n-pass-26"})
+        self.assertEqual(r.status_code, 302)

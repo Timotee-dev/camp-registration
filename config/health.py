@@ -2,6 +2,30 @@ from django.db import connection
 from django.http import HttpResponse
 
 
+def _admin_status():
+    """Booleans only — says whether the admin account is ready, never reveals emails or passwords."""
+    import os
+    from django.contrib.auth import get_user_model
+    User = get_user_model()
+    email = os.getenv("DJANGO_SUPERUSER_EMAIL", "").strip().lower()
+    password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "").strip()
+    commit = os.getenv("RENDER_GIT_COMMIT", "")[:7] or "unknown"
+    lines = [f"deployed commit: {commit}", f"admin accounts: {User.objects.filter(is_superuser=True).count()}"]
+    if not email:
+        lines.append("admin email env var: NOT SET")
+        return "\n".join(lines)
+    u = User.objects.filter(email__iexact=email).first() or User.objects.filter(username__iexact=email).first()
+    lines.append(f"admin email env var: set ({email[:2]}***@{email.split('@')[-1] if '@' in email else '?'})")
+    if u is None:
+        lines.append("account for that email: MISSING (deploy again so ensure_admin runs)")
+    else:
+        lines.append(f"account for that email: exists; is admin: {'YES' if u.is_superuser and u.is_staff else 'NO'}; "
+                     f"active: {'YES' if u.is_active else 'NO'}")
+        if password:
+            lines.append(f"password env var matches account: {'YES' if u.check_password(password) else 'NO'}")
+    return "\n".join(lines)
+
+
 def _db_status():
     """Short, non-secret description of database health (no hostnames or passwords)."""
     try:
@@ -28,7 +52,7 @@ def _db_status():
         line = f"db: ok ({vendor}); users: {users}; events: {Event.objects.count()}"
         if foreign:
             line += f"; WARNING shared with another project (apps: {', '.join(foreign)})"
-        return line
+        return line + "\n" + _admin_status()
     except Exception as e:  # noqa: BLE001
         import re
         from django.conf import settings

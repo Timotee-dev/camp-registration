@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 
@@ -7,6 +9,8 @@ class EmailBackend(ModelBackend):
 
     def authenticate(self, request, username=None, password=None, **kwargs):
         email = (kwargs.get("email") or username or "").strip().lower()
+        if email == "admin":  # convenience on /admin/: "admin" = the account in DJANGO_SUPERUSER_EMAIL
+            email = os.getenv("DJANGO_SUPERUSER_EMAIL", "").strip().lower() or email
         if not email or not password:
             return None
         User = get_user_model()

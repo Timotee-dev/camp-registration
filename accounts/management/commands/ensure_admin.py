@@ -15,8 +15,8 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         email = os.getenv("DJANGO_SUPERUSER_EMAIL", "").strip().lower()
-        password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "")
-        reset = os.getenv("DJANGO_SUPERUSER_RESET_PASSWORD", "").lower() in {"1", "true", "yes"}
+        password = os.getenv("DJANGO_SUPERUSER_PASSWORD", "").strip()
+        reset = os.getenv("DJANGO_SUPERUSER_RESET_PASSWORD", "").strip().lower() in {"1", "true", "yes"}
         if not email or not password:
             self.stdout.write("ensure_admin: DJANGO_SUPERUSER_EMAIL/PASSWORD not set, skipping.")
             return
