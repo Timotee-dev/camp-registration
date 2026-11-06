@@ -384,3 +384,22 @@ class DoubleSubmitTests(TestCase):
             r = self.client_class().post(reverse("accounts:signup"),
                                          {"full_name": "Race", "email": "race@example.com", "password": "Other-Pass-99"})
         self.assertContains(r, "already exists")
+
+
+class EnsureAdminTests(TestCase):
+    def test_creates_or_promotes(self):
+        import os
+        from unittest import mock
+        from django.core.management import call_command
+        env = {"DJANGO_SUPERUSER_EMAIL": "Boss@Example.com", "DJANGO_SUPERUSER_PASSWORD": "Adm1n-pass-26"}
+        with mock.patch.dict(os.environ, env):
+            call_command("ensure_admin", stdout=io.StringIO())
+        u = User.objects.get(email="boss@example.com")
+        self.assertTrue(u.is_superuser and u.is_staff and u.check_password("Adm1n-pass-26"))
+        normal = make_user("me@example.com", pw="My-own-pass-1")
+        with mock.patch.dict(os.environ, {"DJANGO_SUPERUSER_EMAIL": "me@example.com", "DJANGO_SUPERUSER_PASSWORD": "x"}):
+            call_command("ensure_admin", stdout=io.StringIO())
+        normal.refresh_from_db()
+        self.assertTrue(normal.is_superuser and normal.check_password("My-own-pass-1"))
+        self.assertTrue(self.client.login(username="ME@example.com", password="My-own-pass-1"))
+        self.assertEqual(self.client.get("/admin/").status_code, 200)
